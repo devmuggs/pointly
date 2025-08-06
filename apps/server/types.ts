@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 
 export type PointlyRequestContext = {
-	pagination: { take: number; skip: number; page: number };
+	pagination: { take: number; skip: number };
 	correlationId: string;
 	user?: { id: string; email: string; name: string };
 };
@@ -17,7 +17,7 @@ export interface PointlyResponse extends Response {
 
 export function createContextDefaults(): PointlyRequestContext {
 	return {
-		pagination: { take: 10, skip: 0, page: 0 },
+		pagination: { take: 10, skip: 0 },
 		correlationId: "",
 		user: undefined
 	};

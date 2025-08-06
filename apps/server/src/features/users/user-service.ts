@@ -13,10 +13,10 @@ export const userService = {
 		ctx: PointlyRequestContext = createContextDefaults()
 	): Promise<UserJson | null> => {
 		const user = await userRepo.fetchUserByEmail(data.email);
-		if (!user) throw new PointlyError("Invalid email or password");
+		if (!user) return null;
 
 		const isValid = await Hasher.compare({ hash: user.password, compare: data.password });
-		if (!isValid) throw new PointlyError("Invalid email or password");
+		if (!isValid) return null;
 
 		return userDto.toSafe(user);
 	},

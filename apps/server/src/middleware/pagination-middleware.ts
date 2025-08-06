@@ -3,7 +3,6 @@ import z from "zod";
 import { assignContextDefaults, PointlyRequest } from "../../types";
 
 const PaginationSchema = z.object({
-	page: z.coerce.number().int().min(1).default(1),
 	take: z.coerce.number().int().min(1).default(10),
 	skip: z.coerce.number().int().min(0).default(0)
 });
@@ -25,10 +24,10 @@ export default function paginationMiddleware(
 }
 
 export function toPrismaOptions(pagination: z.infer<typeof PaginationSchema>) {
-	const { page, take, skip } = pagination;
+	const { take, skip } = pagination;
 
 	return {
-		skip: skip + (page - 1) * take,
+		skip,
 		take
 	};
 }

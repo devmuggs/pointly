@@ -20,45 +20,42 @@ model User {
   email    String @unique
   name     String
   password String
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   cards    UserCard[]
   groups   GroupMembership[]
   transactions Transaction[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
-model GroupMembership {
-  id      String @id @default(uuid())
-  
+enum GroupRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+model GroupMembership { 
   userId  String
   groupId String
 
   roleId  String?
-  role    GroupRole? @relation(fields: [roleId], references: [id])
+  role    GroupRole @default(MEMBER)
 
   user    User   @relation(fields: [userId], references: [id])
   group   Group  @relation(fields: [groupId], references: [id])
-}
-
-model GroupRole {
-  id       String @id @default(uuid())
-  name     String
-  groupId  String
-  group    Group  @relation(fields: [groupId], references: [id])
-
-  groupMemberships GroupMembership[]
-}
+  @@id([userId, groupId])
+} 
 
 // A group may contains users, cards, and currencies
 model Group {
   id    String @id @default(uuid())
-  name  String?
+  name  String
+  description String?
+
   users GroupMembership[]
   currencies Currency[]
-  purchasables Purchasable[]
-  roles      GroupRole[]
+  purchasable Purchasable[]
 }
 
 
@@ -142,16 +139,3 @@ model UserCard {
 
   @@id([userId, cardId])
 }
-
-// model Attachment {
-//   id          String @id @default(uuid())
-//   url         String
-//   type        String // e.g. "image", "video", "document"
-//   description String?
-
-//   userId      String
-//   user        User @relation(fields: [userId], references: [id])
-
-//   cardId      String?
-//   card        Card? @relation(fields: [cardId], references: [id])
-// }
