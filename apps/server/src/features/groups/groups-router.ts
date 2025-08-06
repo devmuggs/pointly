@@ -1,13 +1,28 @@
 import { Router } from "express";
+import { groupsController } from "./groups-controller";
 
 export const groupRouter = Router();
-groupRouter.route("/").get().post();
-groupRouter.route("/:groupId").get().patch().delete();
-groupRouter.route("/:groupId/users").get().post();
-groupRouter.route("/:groupId/users/:userId").get().patch().delete();
-groupRouter.route("/:groupId/cards").get().post();
-groupRouter.route("/:groupId/cards/:cardId").get().patch().delete();
-groupRouter.route("/:groupId/transactions").get().post();
-groupRouter.route("/:groupId/transactions/:transactionId").get().patch().delete();
-groupRouter.route("/:groupId/catalogue").get().post();
-groupRouter.route("/:groupId/catalogue/:itemId").get().patch().delete();
+groupRouter.route("/").get(groupsController.fetchGroups);
+groupRouter
+	.route("/:id")
+	.get(groupsController.fetchGroup)
+	.patch(groupsController.updateGroup)
+	.delete(groupsController.deleteGroup);
+
+groupRouter
+	.route("/:id/users")
+	.get(groupsController.fetchGroupUsers)
+	.post(groupsController.addGroupUser)
+	.delete(groupsController.removeGroupUser);
+
+groupRouter
+	.route("/:id/currencies")
+	.get(groupsController.fetchGroupCurrencies)
+	.post(groupsController.addGroupCurrency)
+	.delete(groupsController.deleteGroupCurrency);
+
+groupRouter
+	.route("/:id/purchasable")
+	.get(groupsController.fetchGroupPurchasable)
+	.post(groupsController.addGroupPurchasable)
+	.delete(groupsController.deleteGroupPurchasable);

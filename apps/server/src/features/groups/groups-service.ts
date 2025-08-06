@@ -40,6 +40,14 @@ export const groupService = {
 		return group;
 	},
 
+	fetchGroups: async (context: PointlyRequestContext = createContextDefaults()) => {
+		const groups = await prisma.group.findMany({
+			...toPrismaOptions(context.pagination)
+		});
+
+		return groups;
+	},
+
 	updateGroup: async (
 		data: GroupUpdate,
 		context: PointlyRequestContext = createContextDefaults()
