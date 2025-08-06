@@ -1,0 +1,157 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// basic user model
+model User {
+  id       String @id @default(uuid())
+  email    String @unique
+  name     String
+  password String
+
+  cards    UserCard[]
+  groups   GroupMembership[]
+  transactions Transaction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model GroupMembership {
+  id      String @id @default(uuid())
+  
+  userId  String
+  groupId String
+
+  roleId  String?
+  role    GroupRole? @relation(fields: [roleId], references: [id])
+
+  user    User   @relation(fields: [userId], references: [id])
+  group   Group  @relation(fields: [groupId], references: [id])
+}
+
+model GroupRole {
+  id       String @id @default(uuid())
+  name     String
+  groupId  String
+  group    Group  @relation(fields: [groupId], references: [id])
+
+  groupMemberships GroupMembership[]
+}
+
+// A group may contains users, cards, and currencies
+model Group {
+  id    String @id @default(uuid())
+  name  String?
+  users GroupMembership[]
+  currencies Currency[]
+  purchasables Purchasable[]
+  roles      GroupRole[]
+}
+
+
+// A predefined purchasable item that can be bought with points (i.e. doing the dishes, 1 hour of game time, etc.)
+model Purchasable {
+  id          String @id @default(uuid())
+
+  name        String
+  description String?
+  
+  prices       Price[] // Prices for this purchasable item in different currencies
+  transactions Transaction[] // Transactions where this item was purchased
+  
+  groupId     String?
+  group       Group? @relation(fields: [groupId], references: [id])
+}
+
+// The act of purchasing a purchasable item with points
+model Transaction {
+  id          String @id @default(uuid())
+  userId      String
+  cardId      String
+
+  timestamp   DateTime @default(now())
+  
+  user        User   @relation(fields: [userId], references: [id])
+  card        UserCard @relation(fields: [userId, cardId], references: [userId, cardId])
+  
+  purchasableId String?
+  purchasable   Purchasable? @relation(fields: [purchasableId], references: [id])
+}
+
+model Price {
+  id          String @id @default(uuid())
+  amount      Float
+
+  currencyId  String
+  currency    Currency @relation(fields: [currencyId], references: [id])
+
+  purchasableId String
+  purchasable   Purchasable @relation(fields: [purchasableId], references: [id])
+}
+
+model Currency {
+  id          String @id @default(uuid())
+  name        String
+  symbol      String
+
+  groupId    String?
+  group      Group? @relation(fields: [groupId], references: [id])
+
+  cards       Card[]
+  prices      Price[]
+}
+
+// A Card represents a specific currency that can be used to purchase items, includes things like name, description, image, base colour
+model Card {
+  id          String @id @default(uuid())
+  name        String
+  description String?
+  baseColor   String // Hex color code for the card's base color
+  colour      String
+
+  currencyId  String
+  currency    Currency @relation(fields: [currencyId], references: [id])
+
+  users       UserCard[]
+}
+
+// A UserCard represents a user's points balance, which can be used to purchase items or transfer points
+// A UserCard should be unique to user/currency
+model UserCard {
+  userId      String
+  cardId      String
+
+  balance     Float @default(0)
+  transactions Transaction[]
+
+  user        User @relation(fields: [userId], references: [id])
+  card        Card @relation(fields: [cardId], references: [id])
+
+  @@id([userId, cardId])
+}
+
+// model Attachment {
+//   id          String @id @default(uuid())
+//   url         String
+//   type        String // e.g. "image", "video", "document"
+//   description String?
+
+//   userId      String
+//   user        User @relation(fields: [userId], references: [id])
+
+//   cardId      String?
+//   card        Card? @relation(fields: [cardId], references: [id])
+// }
