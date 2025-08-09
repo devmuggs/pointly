@@ -24,6 +24,8 @@ export default function Tiltable({ onTilt, maxTilt = 30, children, ...props }: T
 	};
 
 	const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+		e.preventDefault();
+		e.stopPropagation();
 		const rect = cardRef.current?.getBoundingClientRect();
 		if (!rect) return;
 
@@ -78,12 +80,17 @@ export default function Tiltable({ onTilt, maxTilt = 30, children, ...props }: T
 				...props.style,
 				rotateY: tiltX,
 				rotateX: tiltY,
-				willChange: "transform"
+				willChange: "transform",
+				touchAction: "none"
 			}}
 			onMouseEnter={handlePointerDown}
 			onMouseMove={handlePointerMove}
 			onMouseUp={handlePointerUp}
 			onMouseLeave={handlePointerLeave}
+			onPointerDown={handlePointerDown}
+			onPointerMove={handlePointerMove}
+			onPointerUp={handlePointerUp}
+			onPointerLeave={handlePointerLeave}
 			// {...props}
 		>
 			{children}

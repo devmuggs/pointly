@@ -165,28 +165,27 @@ export default function Card({ name, balance, baseColour }: UserCardProps) {
 						<motion.span className="text-white/80 text-shadow-sm text-shadow-black/80 text-xl font-light -mb-2 select-none text-center mx-auto absolute inset-x-0 z-50">
 							<JumbleText target="4000 1234 5678 9010" duration={800} interval={30} />
 						</motion.span>
-						{/* Albedo Overlay for base colour */}
+
+						{/* Albedo Overlay */}
 						<motion.div
-							className={`absolute inset-0 rounded-md z-0`}
+							className="absolute inset-0 rounded-md pointer-events-none"
 							style={{ background: baseColour }}
 						/>
-						{/* Radial Gradient Overlay, moves with mouse */}
+						{/* Radial Gradient Overlay */}
 						<motion.div
-							className="absolute inset-0 rounded-md z-10 pointer-events-none"
-							style={{
-								background: backgroundColor
-							}}
+							className="absolute inset-0 rounded-md pointer-events-none"
+							style={{ background: backgroundColor }}
 						/>
+						{/* Fresnel Texture */}
 						<motion.div
-							className="absolute inset-0 rounded-md pointer-events-none z-20"
+							className="absolute inset-0 rounded-md pointer-events-none"
 							style={{
 								backgroundImage: "url('/textures/fresnel.jpg')",
 								backgroundSize: "cover",
 								backgroundRepeat: "no-repeat",
-								mixBlendMode: BlendMode.overlay, // or "screen" for a lighter effect
+								mixBlendMode: BlendMode.multiply,
 								opacity: fresnelOpacity,
-
-								filter: "contrast(1.2) brightness(1.1)" // makes it b/w and a bit punchier
+								filter: "contrast(1.2) brightness(1.1)"
 							}}
 							transition={{
 								duration: 10,
@@ -194,15 +193,16 @@ export default function Card({ name, balance, baseColour }: UserCardProps) {
 								repeat: Infinity
 							}}
 						/>
+						{/* Glitter Texture */}
 						<motion.div
-							className="absolute inset-0 rounded-md pointer-events-none z-10"
+							className="absolute inset-0 rounded-md pointer-events-none"
 							style={{
-								backgroundImage: "url('/textures/glitter-normal.jpg')", // your normal map path
+								backgroundImage: "url('/textures/glitter-normal.jpg')",
 								backgroundSize: "cover",
 								backgroundRepeat: "no-repeat",
-								mixBlendMode: BlendMode.overlay, // or "overlay" for a stronger effect
+								mixBlendMode: BlendMode.multiply,
 								opacity: glitterOpacity,
-								filter: "grayscale(1) contrast(1.2)" // makes it b/w and a bit punchier
+								filter: "grayscale(1) contrast(1.2)"
 							}}
 							transition={{
 								duration: 14,
@@ -278,7 +278,7 @@ export default function Card({ name, balance, baseColour }: UserCardProps) {
 							</div>
 						</div>
 
-						{/* Albedo Overlay for base colour */}
+						{/* Albedo Overlay */}
 						<motion.div
 							className={`absolute inset-0 rounded-md z-0`}
 							style={{ background: baseColour }}
