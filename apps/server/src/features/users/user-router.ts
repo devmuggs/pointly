@@ -24,8 +24,3 @@ userRouter
 	.route("/:id/groups")
 	.get(userGroupController.fetchUserGroups)
 	.post(userGroupController.createUserGroup);
-
-// userRouter.route("/cards").get().post();
-// userRouter.route("/cards/:cardId").get().patch().delete();
-// userRouter.route("/cards/:cardId/transactions").get().post();
-// userRouter.route("/cards/:cardId/transactions/:transactionId").get().patch().delete();

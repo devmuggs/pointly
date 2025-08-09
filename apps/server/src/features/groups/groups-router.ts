@@ -9,9 +9,10 @@ groupRouter
 	.patch(groupsController.updateGroup)
 	.delete(groupsController.deleteGroup);
 
+groupRouter.route("/:id/users").get(groupsController.fetchGroupUsers);
+
 groupRouter
-	.route("/:id/users")
-	.get(groupsController.fetchGroupUsers)
+	.route("/:id/users/:userId")
 	.post(groupsController.addGroupUser)
 	.delete(groupsController.removeGroupUser);
 
@@ -24,5 +25,9 @@ groupRouter
 groupRouter
 	.route("/:id/purchasable")
 	.get(groupsController.fetchGroupPurchasable)
-	.post(groupsController.addGroupPurchasable)
-	.delete(groupsController.deleteGroupPurchasable);
+	.post(groupsController.addGroupPurchasable);
+
+// groupRouter
+// 	.route("/:id/purchasable/:purchasableId")
+// 	.patch(groupsController.updateGroupPurchasable)
+// 	.delete(groupsController.deleteGroupPurchasable);

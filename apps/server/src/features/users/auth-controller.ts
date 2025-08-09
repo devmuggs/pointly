@@ -20,9 +20,11 @@ export const authController = {
 	registerUser: async (req: PointlyRequest, res: PointlyResponse) => {
 		const data = UserRegistrationSchema.parse(req.body);
 		const user = await userService.registerUser(data, req.context);
+
 		if (!user) {
 			return res.status(HttpStatusCode.BadRequest).json({ error: "User already exists" });
 		}
+
 		assignUserToCookie(user.id, res);
 		res.status(201).json(user);
 	},

@@ -3,7 +3,7 @@ import { createContextDefaults, PointlyRequestContext } from "../../../types";
 import prisma from "../../core/prisma";
 import { toPrismaOptions } from "../../middleware/pagination-middleware";
 import { UserSelect } from "../users/user-schemas";
-import { GroupCreate, GroupSelect, GroupUpdate } from "./group-schemas";
+import { GroupAddUser, GroupCreate, GroupSelect, GroupUpdate } from "./group-schemas";
 
 export const groupService = {
 	createGroup: async (
@@ -83,16 +83,34 @@ export const groupService = {
 			where: { id: data.id, users: { some: { userId: context.user.id, role: "OWNER" } } }
 		});
 	},
-	fetchUserGroups: async (
-		{ user: { id } }: { user: UserSelect },
+
+	fetchGroupUsers: async (
+		data: GroupSelect,
 		context: PointlyRequestContext = createContextDefaults()
 	) => {
 		const groups = await prisma.groupMembership.findMany({
-			where: { userId: id },
+			where: { groupId: data.id },
 			...toPrismaOptions(context.pagination),
-			include: { group: true }
+			include: { user: { select: { id: true, email: true, name: true } } }
 		});
 
-		return groups.map((gm) => gm.group);
+		return groups.map((gm) => gm.user);
+	},
+
+	addGroupUser: async (
+		data: GroupAddUser,
+		context: PointlyRequestContext = createContextDefaults()
+	) => {
+		if (!context.user) throw new Error("Unauthorized");
+
+		const groupMembership = await prisma.groupMembership.create({
+			data: {
+				userId: data.user.id,
+				groupId: data.id,
+				role: data.role
+			}
+		});
+
+		return groupMembership;
 	}
 };

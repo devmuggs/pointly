@@ -116,8 +116,7 @@ model Card {
   id          String @id @default(uuid())
   name        String
   description String?
-  baseColor   String // Hex color code for the card's base color
-  colour      String
+  baseColour   String
 
   currencyId  String
   currency    Currency @relation(fields: [currencyId], references: [id])
@@ -125,8 +124,6 @@ model Card {
   users       UserCard[]
 }
 
-// A UserCard represents a user's points balance, which can be used to purchase items or transfer points
-// A UserCard should be unique to user/currency
 model UserCard {
   userId      String
   cardId      String

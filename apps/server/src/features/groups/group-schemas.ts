@@ -20,7 +20,13 @@ export const GroupMembershipSchema = UserSelectSchema.extend(GroupSelectSchema.s
 	role: z.enum($Enums.GroupRole).default("MEMBER")
 });
 
+export const GroupAddUserSchema = GroupSelectSchema.extend({
+	user: UserSelectSchema,
+	role: z.enum($Enums.GroupRole).default("MEMBER")
+});
+
 export type GroupCreate = z.infer<typeof GroupCreateSchema>;
 export type GroupUpdate = z.infer<typeof GroupUpdateSchema>;
 export type GroupSelect = z.infer<typeof GroupSelectSchema>;
 export type GroupMembership = z.infer<typeof GroupMembershipSchema>;
+export type GroupAddUser = z.infer<typeof GroupAddUserSchema>;
