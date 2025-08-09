@@ -1,36 +1,24 @@
 // This file is to muck around with framer-motion
 
-import { animate, useMotionValue, useTransform } from "framer-motion";
 import { useState } from "react";
 import Card from "../components/card/card";
 
 export default function FramerMotionSandbox() {
-	const balance = useMotionValue(1958);
-	const roundedBalance = useTransform(balance, (value) => Math.round(value));
+	const [balance, setBalance] = useState(1958);
 	const [balanceIncrement, setBalanceIncrement] = useState(1);
-
-	const calculateAnimationDuration = (increment: number) => {
-		const minimumDurationSeconds = 0.5;
-		return Math.min(minimumDurationSeconds + increment / 100, 5);
-	};
-
-	const handleBalanceChange = (increment: number) => {
-		animate(balance, increment, {
-			duration: calculateAnimationDuration(increment)
-		});
-	};
+	const [baseColour, setBaseColour] = useState("rgb(239, 68, 68)");
 
 	return (
 		<div className="flex flex-col items-center justify-center h-screen overflow-hidden font-sans">
-			<h1 className="text-2xl mb-4">Framer Motion Sandbox</h1>
-
-			<Card name={"BodyPay"} balance={roundedBalance.get()} baseColour="bg-rose-600" />
+			{/* <h1 className="text-2xl mb-4">Framer Motion Sandbox</h1> */}
+			{baseColour}
+			<Card name={"模擬"} balance={balance} baseColour={baseColour} />
 
 			<form
 				className="mt-4 flex flex-col items-center"
 				onSubmit={(e) => {
 					e.preventDefault();
-					handleBalanceChange(balance.get() + balanceIncrement);
+					setBalance(balance + balanceIncrement);
 				}}
 			>
 				<input
@@ -38,8 +26,17 @@ export default function FramerMotionSandbox() {
 					min="1"
 					max="100"
 					value={balanceIncrement}
-					onChange={(e) => setBalanceIncrement(Number(e.target.value))}
+					onChange={(e) => setBalanceIncrement(+e.target.value)}
 				/>
+
+				<input
+					type="color"
+					name=""
+					id=""
+					value={baseColour}
+					onChange={(e) => setBaseColour(e.target.value)}
+				/>
+
 				<button className="mt-2 px-4 py-2 bg-emerald-600 text-white rounded" type="submit">
 					Add ${balanceIncrement}
 				</button>

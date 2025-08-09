@@ -4,14 +4,19 @@ import React, { useRef } from "react";
 interface TiltableProps extends React.HTMLAttributes<HTMLDivElement> {
 	maxTilt?: number; // degrees, default 30
 	children: React.ReactNode;
+
+	onTilt?: (x: number, y: number) => void; // callback for tilt changes
 }
 
-export default function Tiltable({ maxTilt = 30, children, ...props }: TiltableProps) {
+export default function Tiltable({ onTilt, maxTilt = 30, children, ...props }: TiltableProps) {
 	const tiltX = useMotionValue(0);
 	const tiltY = useMotionValue(0);
 
+	const cardRef = useRef<HTMLDivElement>(null);
+
 	const dragStartY = useRef<number | null>(null);
 	const dragStartX = useRef<number | null>(null);
+	const resetInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
 	const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
 		dragStartX.current = e.clientX;
@@ -19,22 +24,42 @@ export default function Tiltable({ maxTilt = 30, children, ...props }: TiltableP
 	};
 
 	const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-		if (dragStartX.current !== null) {
-			const delta = e.clientX - dragStartX.current;
-			tiltX.set(Math.max(-maxTilt, Math.min(maxTilt, delta / 3)));
-		}
+		const rect = cardRef.current?.getBoundingClientRect();
+		if (!rect) return;
 
-		if (dragStartY.current !== null) {
-			const delta = e.clientY - dragStartY.current;
-			tiltY.set(Math.max(-maxTilt, Math.min(maxTilt, -delta / 3))); // negative for natural tilt
-		}
+		const x = e.clientX - rect.left;
+		const y = e.clientY - rect.top;
+		const centerX = rect.width / 2;
+		const centerY = rect.height / 2;
+
+		// Map [-center, center] to [-maxTilt, maxTilt]
+		let tiltXVal = ((x - centerX) / centerX) * maxTilt;
+		let tiltYVal = -((y - centerY) / centerY) * maxTilt;
+
+		// Clamp to maxTilt
+		tiltXVal = Math.max(-maxTilt, Math.min(maxTilt, tiltXVal));
+		tiltYVal = Math.max(-maxTilt, Math.min(maxTilt, tiltYVal));
+
+		animate(tiltX, tiltXVal, { type: "spring", stiffness: 200, damping: 30 });
+		animate(tiltY, tiltYVal, { type: "spring", stiffness: 200, damping: 30 });
+
+		onTilt?.(tiltXVal, tiltYVal);
 	};
 
 	const resetTilt = () => {
-		dragStartX.current = null;
-		dragStartY.current = null;
-		animate(tiltX, 0, { type: "spring", stiffness: 300, damping: 30 });
-		animate(tiltY, 0, { type: "spring", stiffness: 300, damping: 30 });
+		if (resetInterval.current) {
+			clearInterval(resetInterval.current);
+			resetInterval.current = null;
+		}
+
+		resetInterval.current = setTimeout(() => {
+			dragStartX.current = null;
+			dragStartY.current = null;
+			animate(tiltX, 0, { type: "spring", stiffness: 200, damping: 30 });
+			animate(tiltY, 0, { type: "spring", stiffness: 200, damping: 30 });
+			onTilt?.(0, 0); // reset tilt callback
+			resetInterval.current = null;
+		}, 1000); // reset tilt after 1 second of inactivity
 	};
 
 	const handlePointerUp = () => {
@@ -47,6 +72,7 @@ export default function Tiltable({ maxTilt = 30, children, ...props }: TiltableP
 
 	return (
 		<motion.div
+			ref={cardRef}
 			className="w-full h-full"
 			style={{
 				...props.style,
@@ -54,10 +80,11 @@ export default function Tiltable({ maxTilt = 30, children, ...props }: TiltableP
 				rotateX: tiltY,
 				willChange: "transform"
 			}}
-			onPointerDown={handlePointerDown}
-			onPointerMove={handlePointerMove}
-			onPointerUp={handlePointerUp}
-			onPointerLeave={handlePointerLeave}
+			onMouseEnter={handlePointerDown}
+			onMouseMove={handlePointerMove}
+			onMouseUp={handlePointerUp}
+			onMouseLeave={handlePointerLeave}
+			// {...props}
 		>
 			{children}
 		</motion.div>
