@@ -3,9 +3,9 @@ import { useEffect, useState } from "react";
 
 import { BsFire } from "react-icons/bs";
 import QRCode from "react-qr-code";
-import Flippable from "./Flippable";
-import JumbleText from "./JumbleText";
-import Tiltable from "./Tiltable";
+import Flippable from "./flippable";
+import JumbleText from "./jumble-text";
+import Tiltable from "./tiltable";
 
 interface UserCardProps {
 	name: string;

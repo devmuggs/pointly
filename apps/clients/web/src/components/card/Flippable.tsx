@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import { motion, useMotionValue } from "motion/react";
 import React, { type ReactNode, useRef, useState } from "react";
-import { Direction, useDraggable } from "./useDraggable";
+import { Direction, useDraggable } from "./use-draggable";
 
 interface FlippableProps extends React.HTMLAttributes<HTMLDivElement> {
 	isFlipped?: boolean;
