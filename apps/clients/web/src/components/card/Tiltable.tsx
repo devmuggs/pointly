@@ -6,9 +6,16 @@ interface TiltableProps extends React.HTMLAttributes<HTMLDivElement> {
 	children: React.ReactNode;
 
 	onTilt?: (x: number, y: number) => void; // callback for tilt changes
+	onTiltEnd?: (x: number, y: number) => void; // callback for tilt changes
 }
 
-export default function Tiltable({ onTilt, maxTilt = 30, children, ...props }: TiltableProps) {
+export default function Tiltable({
+	onTilt,
+	maxTilt = 30,
+	children,
+	onTiltEnd,
+	...props
+}: TiltableProps) {
 	const tiltX = useMotionValue(0);
 	const tiltY = useMotionValue(0);
 
@@ -42,8 +49,8 @@ export default function Tiltable({ onTilt, maxTilt = 30, children, ...props }: T
 		tiltXVal = Math.max(-maxTilt, Math.min(maxTilt, tiltXVal));
 		tiltYVal = Math.max(-maxTilt, Math.min(maxTilt, tiltYVal));
 
-		animate(tiltX, tiltXVal, { type: "spring", stiffness: 200, damping: 30 });
-		animate(tiltY, tiltYVal, { type: "spring", stiffness: 200, damping: 30 });
+		tiltX.set(tiltXVal);
+		tiltY.set(tiltYVal);
 
 		onTilt?.(tiltXVal, tiltYVal);
 	};
@@ -57,9 +64,9 @@ export default function Tiltable({ onTilt, maxTilt = 30, children, ...props }: T
 		resetInterval.current = setTimeout(() => {
 			dragStartX.current = null;
 			dragStartY.current = null;
-			animate(tiltX, 0, { type: "spring", stiffness: 200, damping: 30 });
-			animate(tiltY, 0, { type: "spring", stiffness: 200, damping: 30 });
-			onTilt?.(0, 0); // reset tilt callback
+			animate(tiltX, 0, { type: "spring", stiffness: 100, damping: 10 });
+			animate(tiltY, 0, { type: "spring", stiffness: 100, damping: 10 });
+			onTiltEnd?.(0, 0); // reset tilt callback
 			resetInterval.current = null;
 		}, 1000); // reset tilt after 1 second of inactivity
 	};

@@ -8,9 +8,11 @@ import JumbleText from "./jumble-text";
 import Tiltable from "./tiltable";
 
 interface UserCardProps {
+	id: string;
 	name: string;
 	balance: number;
 	baseColour?: string;
+	sigil?: string; // URL to an image for the card sigil
 }
 
 const BlendMode = {
@@ -28,7 +30,16 @@ const calculateAnimationDuration = (increment: number) => {
 	return Math.min(minimumDurationSeconds + increment / 100, 5);
 };
 
-export default function Card({ name, balance, baseColour }: UserCardProps) {
+function hashStringToSeed(str: string) {
+	let hash = 0;
+	for (let i = 0; i < str.length; i++) {
+		hash = (hash << 5) - hash + str.charCodeAt(i);
+		hash |= 0; // Convert to 32bit integer
+	}
+	return Math.abs(hash);
+}
+
+export default function Card({ id, name, balance, baseColour, sigil }: UserCardProps) {
 	// want to render the balance with commas, e.g. 1,958
 
 	const tiltY = useMotionValue(0);
@@ -105,13 +116,23 @@ export default function Card({ name, balance, baseColour }: UserCardProps) {
 		([x, y]) => Math.sqrt(x * x + y * y) / maxTilt // 0 (center) to 1 (max tilt)
 	);
 
-	const glitterOpacity = useTransform(tiltMagnitude, (t) => 0.3 + 0.6 * t); // 0.2 to 0.7 based on tilt
+	const glitterOpacity = useTransform(tiltMagnitude, (t) => 0.3 + 0.6 * t); //
 	const fresnelOpacity = useTransform(tiltMagnitude, (t) => 0.7 + 0.8 * t);
+	const sigilOpacity = useTransform(tiltMagnitude, (t) => 0.8 + 0.8 * t); // 0.5 to 1 based on tilt
 
 	const parallaxFactor = 5; // px per max tilt, tweak for more/less effect
 
 	const parallaxX = useTransform(tiltX, (t) => t * (parallaxFactor / maxTilt));
 	const parallaxY = useTransform(tiltY, (t) => t * (parallaxFactor / maxTilt));
+
+	const seed = hashStringToSeed(id);
+	const fresnelOffsetX = (seed % 100) - 50; // -50 to +49 px
+	const fresnelOffsetY = ((seed >> 2) % 100) - 50;
+	const fresnelScale = 1 + (seed % 30) / 100; // 1.0 to 1.29
+
+	const glitterOffsetX = ((seed >> 3) % 100) - 50;
+	const glitterOffsetY = ((seed >> 5) % 100) - 50;
+	const glitterScale = 1 + ((seed >> 7) % 30) / 100;
 
 	return (
 		<motion.div
@@ -125,8 +146,12 @@ export default function Card({ name, balance, baseColour }: UserCardProps) {
 			<Tiltable
 				maxTilt={maxTilt}
 				onTilt={(x, y) => {
-					animate(tiltX, x, { type: "spring", stiffness: 200, damping: 30 });
-					animate(tiltY, y, { type: "spring", stiffness: 200, damping: 30 });
+					tiltX.set(x);
+					tiltY.set(y);
+				}}
+				onTiltEnd={(x, y) => {
+					animate(tiltX, x, { type: "spring", stiffness: 100, damping: 10 });
+					animate(tiltY, y, { type: "spring", stiffness: 100, damping: 10 });
 				}}
 			>
 				<Flippable className="p-2">
@@ -150,12 +175,8 @@ export default function Card({ name, balance, baseColour }: UserCardProps) {
 								</motion.span>
 							</div>
 
-							<div className="flex justify-between w-full">
-								<BsFire
-									size={32}
-									className="text-2xl text-white/50 backdrop-blur-sm transition-all duration-300 ease-in-out"
-								/>
-								<div className="text-2xl text-white/50 backdrop-blur-sm transition-all duration-300 ease-in-out">
+							<div className="flex w-full justify-end text-sm">
+								<div className="text-white/50 backdrop-blur-sm transition-all duration-300 ease-in-out">
 									{name}
 								</div>
 							</div>
@@ -163,7 +184,7 @@ export default function Card({ name, balance, baseColour }: UserCardProps) {
 
 						{/* Always want card number perfectly centered */}
 						<motion.span className="text-white/80 text-shadow-sm text-shadow-black/80 text-xl font-light -mb-2 select-none text-center mx-auto absolute inset-x-0 z-50">
-							<JumbleText target="4000 1234 5678 9010" duration={800} interval={30} />
+							<JumbleText target={id} duration={800} interval={30} />
 						</motion.span>
 
 						{/* Albedo Overlay */}
@@ -176,16 +197,20 @@ export default function Card({ name, balance, baseColour }: UserCardProps) {
 							className="absolute inset-0 rounded-md pointer-events-none"
 							style={{ background: backgroundColor }}
 						/>
+
 						{/* Fresnel Texture */}
 						<motion.div
 							className="absolute inset-0 rounded-md pointer-events-none"
 							style={{
 								backgroundImage: "url('/textures/fresnel.jpg')",
-								backgroundSize: "cover",
+								backgroundSize: `${100 * fresnelScale}% ${100 * fresnelScale}%`,
+								backgroundPosition: `${50 + fresnelOffsetX}% ${
+									50 + fresnelOffsetY
+								}%`,
 								backgroundRepeat: "no-repeat",
 								mixBlendMode: BlendMode.multiply,
 								opacity: fresnelOpacity,
-								filter: "contrast(1.2) brightness(1.1)"
+								filter: ""
 							}}
 							transition={{
 								duration: 10,
@@ -198,11 +223,35 @@ export default function Card({ name, balance, baseColour }: UserCardProps) {
 							className="absolute inset-0 rounded-md pointer-events-none"
 							style={{
 								backgroundImage: "url('/textures/glitter-normal.jpg')",
-								backgroundSize: "cover",
+								// backgroundSize: `${100 * glitterScale}% ${100 * glitterScale}%`,
+								backgroundPosition: `${50 + glitterOffsetX}% ${
+									50 + glitterOffsetY
+								}%`,
 								backgroundRepeat: "no-repeat",
 								mixBlendMode: BlendMode.multiply,
 								opacity: glitterOpacity,
 								filter: "grayscale(1) contrast(1.2)"
+							}}
+							transition={{
+								duration: 14,
+								ease: "linear",
+								repeat: Infinity
+							}}
+						/>
+
+						<motion.div
+							className={`absolute rounded-md z-0 left-2 bottom-2`}
+							style={{
+								height: 24,
+								width: 24,
+								objectFit: "cover",
+								objectPosition: "center",
+								backgroundSize: "cover",
+								backgroundImage: sigil && `url(${sigil})`,
+								backgroundRepeat: "no-repeat",
+								mixBlendMode: BlendMode.multiply,
+								opacity: sigilOpacity,
+								filter: "grayscale(1)"
 							}}
 							transition={{
 								duration: 14,
